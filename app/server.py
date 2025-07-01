@@ -1,12 +1,17 @@
 # app/rate_limiter.py
 import redis.asyncio as redis_lib
 from fastapi import Request, HTTPException
-
+from dotenv import load_dotenv
+import os
 RATE_LIMIT = 5  # max requests
 WINDOW_SECONDS = 60  # time window in seconds
 
+load_dotenv()
+
 async def init_redis(app):
-    redis_client = redis_lib.Redis(host='localhost', port=6379, decode_responses=True)
+    # redis_client = redis_lib.Redis(host='localhost', port=6379, decode_responses=True)
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")  # fallback for local dev
+    redis_client = redis_lib.from_url(redis_url, decode_responses=True)
     app.state.redis = redis_client
 
 async def rate_limiter(request: Request):
