@@ -2,10 +2,11 @@ from fastapi import FastAPI, Request, Depends,HTTPException
 from app.auth import verify_token
 from app.server import init_redis,rate_limiter
 from app.models import WebsiteRequest, AnalysisWithSession, CompanyInfo, ConversationalRequest, ConversationalResponse
-from app.scrapper import scrape_homepage
+from app.scrapper import scrape_homepage,get_homepage_url
 from app.ai import analyze_content, followup_response,is_valid_url
 from datetime import datetime
 import uuid, json
+
 
 app = FastAPI(title="AI Web Insights API")
 
@@ -25,17 +26,24 @@ async def analyze_website(
         # Validate URL from request
         if not is_valid_url(request.url):
             raise HTTPException(status_code=400, detail="Invalid URL format")
+        
+        if not get_homepage_url(homepage_url):
+            raise HTTPException(status_code=400, detail="Invalid URL format")
+        
+        homepage_url = get_homepage_url(request.url)
+
+        
 
         # Scrape and analyze
-        content = await scrape_homepage(request.url)
-        result = await analyze_content(content, request.url, request.questions)
+        content = await scrape_homepage(homepage_url)
+        result = await analyze_content(content, homepage_url, request.questions)
 
         # Save session in Redis
         session_id = str(uuid.uuid4())
         redis = fastapi_request.app.state.redis
 
         await redis.set(session_id, json.dumps({
-            "url": request.url,
+            "url": homepage_url,
             "analysis": result.model_dump()
         }))
 
@@ -46,7 +54,7 @@ async def analyze_website(
         print(f"Error: {e}")
         # Fallback dummy response
         dummy_result = AnalysisWithSession(
-            url=request.url,
+            url=homepage_url,
             analysis_timestamp=str(datetime.utcnow().isoformat()) + "Z",
             company_info=CompanyInfo(),
             extracted_answers=[],
