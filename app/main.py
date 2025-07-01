@@ -27,7 +27,7 @@ async def analyze_website(
         if not is_valid_url(request.url):
             raise HTTPException(status_code=400, detail="Invalid URL format")
         
-        if not get_homepage_url(homepage_url):
+        if not get_homepage_url(request.url):
             raise HTTPException(status_code=400, detail="Invalid URL format")
         
         homepage_url = get_homepage_url(request.url)
