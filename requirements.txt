@@ -7,6 +7,6 @@ uvicorn
 fastapi-limiter
 aioredis
 pytest
-ython-dotenv
+python-dotenv
 pytest-asyncio
 asgi-lifespan
