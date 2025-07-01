@@ -1,0 +1,12 @@
+fastapi
+httpx
+beautifulsoup4
+google-generativeai
+pydantic
+uvicorn
+fastapi-limiter
+aioredis
+pytest
+ython-dotenv
+pytest-asyncio
+asgi-lifespan
